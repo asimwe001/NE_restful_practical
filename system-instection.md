@@ -68,7 +68,7 @@ api for register, recieving and validating these:
 - [x] conditions noted during the maintenance
 
 ## - [x] activity 4: reporting services
-### - [ ] generating real-time reports:
+### - [x] generating real-time reports:
 - [x] extiguisher in stock (daily, monthly, yearly)
 - [x] inspecition status
 - [x] expired ext
