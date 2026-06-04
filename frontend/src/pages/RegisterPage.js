@@ -5,12 +5,6 @@ import toast from 'react-hot-toast';
 import { authAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
-const ROLES = [
-  { value: 'user', label: 'User' },
-  { value: 'inspector', label: 'Inspector' },
-  { value: 'admin', label: 'Administrator' },
-];
-
 const PASSWORD_RULES = [
   { test: (p) => p.length >= 8, label: 'At least 8 characters' },
   { test: (p) => /[A-Z]/.test(p), label: 'One uppercase letter' },
@@ -127,13 +121,6 @@ export default function RegisterPage() {
             <div className="form-group">
               <label className="form-label">Email Address *</label>
               <input type="email" className="form-control" placeholder="john.doe@example.com" value={form.email} onChange={setField('email')} required autoComplete="email" />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Role *</label>
-              <select className="form-control" value={form.role} onChange={setField('role')}>
-                {ROLES.map((role) => <option key={role.value} value={role.value}>{role.label}</option>)}
-              </select>
             </div>
 
             <div className="form-group">
