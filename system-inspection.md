@@ -18,18 +18,17 @@ inspector:
 - [ ] scheduling maintainance.
 
 user: 
-- [ ] can view extinguisher status
-- [ ] schedule inspections
-- [ ] create user experience
+- [x] can view extinguisher status
+- [x] schedule inspections
 
-### - [ ]  user registration
+### - [x]  user registration
 api for register, recieving and validating these:
 - [x] first name
 - [x] last name
 - [x] email
 - [x] password
 
-### - [ ] auth implementation api
+### - [x] auth implementation api
 - [x] auth endpoints
 - [x] applying JWT-based auth
 - [x] role based auth
@@ -42,8 +41,8 @@ api for register, recieving and validating these:
 - [ ] change password
 - [ ] recover password
 
-## - [ ] activity 3: FEMS
-### - [ ] register ext fields: 
+## - [x] activity 3: FEMS
+### - [x] register ext fields: 
 - [x] serial number
 - [x] location
 - [x] type (water, co2, foam, dry chemical)
