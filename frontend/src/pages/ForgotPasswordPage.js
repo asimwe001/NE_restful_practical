@@ -8,17 +8,13 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
-  const [devOtp, setDevOtp] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await authAPI.forgotPassword(email);
+      await authAPI.forgotPassword(email);
       setSent(true);
-      if (res.data.otp) {
-        setDevOtp(res.data.otp);
-      }
       toast.success('OTP sent. Check your email.');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Request failed');
@@ -50,27 +46,13 @@ export default function ForgotPasswordPage() {
               <p>We sent a 6-digit OTP to <strong>{email}</strong></p>
             </div>
 
-            {devOtp && (
-              <div className="alert alert-warning" style={{ textAlign: 'left', marginBottom: 20 }}>
-                <div>
-                  <strong>Dev Mode OTP</strong>
-                  <div style={{ fontSize: 28, fontWeight: 900, letterSpacing: 8, color: 'var(--warning)', marginTop: 8, fontFamily: 'monospace' }}>
-                    {devOtp}
-                  </div>
-                  <div style={{ fontSize: 11, marginTop: 4, color: 'var(--text-muted)' }}>
-                    This is only shown in development mode. In production, check your email.
-                  </div>
-                </div>
-              </div>
-            )}
-
             <Link to="/reset-password" state={{ email }} className="btn btn-primary btn-full btn-lg" style={{ marginBottom: 16 }}>
               Enter OTP & Reset Password
             </Link>
 
             <button
               className="btn btn-secondary btn-full"
-              onClick={() => { setSent(false); setDevOtp(null); }}
+              onClick={() => setSent(false)}
             >
               Resend OTP
             </button>
