@@ -2,9 +2,36 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Joi = require('joi');
+const dns = require('dns').promises;
 const db = require('../db');
 const { authenticate, authorize } = require('../middleware/auth');
 const { sendEmail } = require('../mailer');
+
+const DISPOSABLE_DOMAINS = new Set([
+  'mailinator.com','guerrillamail.com','guerrillamail.info','guerrillamail.biz',
+  'guerrillamail.de','guerrillamail.net','guerrillamail.org','guerrillamailblock.com',
+  'grr.la','sharklasers.com','spam4.me','yopmail.com','yopmail.fr','cool.fr.nf',
+  'jetable.fr.nf','nospam.ze.tc','nomail.xl.cx','mega.zik.dj','speed.1s.fr',
+  'courriel.fr.nf','moncourrier.fr.nf','monemail.fr.nf','monmail.fr.nf',
+  'trashmail.at','trashmail.com','trashmail.io','trashmail.me','trashmail.net',
+  'trashmail.org','dispostable.com','mailnull.com','spamgourmet.com',
+  'getairmail.com','filzmail.com','throwam.com','tempr.email','discard.email',
+  'maildrop.cc','spamhereplease.com','mailscrap.com','fakeinbox.com',
+  'mailnesia.com','nowmymail.com','tempinbox.com','mailexpire.com',
+  'mailfreeonline.com','mailguard.me','mailhazard.com','tempmail.com',
+  'throwaway.email','getnada.com','mohmal.com','anonaddy.com','simplelogin.io',
+  'spamgourmet.net','spamgourmet.org','mailboxy.fun','inboxbear.com',
+]);
+
+async function hasMxRecord(email) {
+  try {
+    const domain = email.split('@')[1];
+    const records = await dns.resolveMx(domain);
+    return records && records.length > 0;
+  } catch {
+    return false;
+  }
+}
 
 const router = express.Router();
 
@@ -103,6 +130,24 @@ router.post('/register', async (req, res) => {
   }
 
   const { firstName, lastName, email, password, role } = value;
+
+  const emailDomain = email.split('@')[1]?.toLowerCase();
+  if (DISPOSABLE_DOMAINS.has(emailDomain)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Validation failed',
+      errors: ['Temporary or disposable email addresses are not allowed. Please use a real email address.'],
+    });
+  }
+
+  const validDomain = await hasMxRecord(email);
+  if (!validDomain) {
+    return res.status(400).json({
+      success: false,
+      message: 'Validation failed',
+      errors: ['Email domain does not exist or cannot receive mail. Please use a real email address.'],
+    });
+  }
 
   const existing = await db.query('SELECT id FROM users WHERE email = $1', [email.toLowerCase()]);
   if (existing.rows.length > 0) {
