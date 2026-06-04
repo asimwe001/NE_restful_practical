@@ -5,6 +5,28 @@ import toast from 'react-hot-toast';
 import { authAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
+const DISPOSABLE_DOMAINS = new Set([
+  'mailinator.com','guerrillamail.com','tempmail.com','throwam.com','sharklasers.com',
+  'guerrillamailblock.com','grr.la','guerrillamail.info','guerrillamail.biz','guerrillamail.de',
+  'guerrillamail.net','guerrillamail.org','spam4.me','yopmail.com','yopmail.fr','cool.fr.nf',
+  'jetable.fr.nf','nospam.ze.tc','nomail.xl.cx','mega.zik.dj','speed.1s.fr','courriel.fr.nf',
+  'moncourrier.fr.nf','monemail.fr.nf','monmail.fr.nf','trashmail.at','trashmail.com',
+  'trashmail.io','trashmail.me','trashmail.net','dispostable.com','mailnull.com',
+  'spamgourmet.com','trashmail.org','getairmail.com','filzmail.com','throwam.com',
+  'tempr.email','discard.email','maildrop.cc','spamhereplease.com','mailscrap.com',
+  'fakeinbox.com','mailnesia.com','mailnull.com','nowmymail.com','tempinbox.com',
+  'mailexpire.com','mailfreeonline.com','mailguard.me','mailhazard.com','mailimate.com',
+]);
+
+function isDisposableEmail(email) {
+  const domain = email.split('@')[1]?.toLowerCase();
+  return domain ? DISPOSABLE_DOMAINS.has(domain) : false;
+}
+
+function isValidEmailFormat(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+}
+
 const PASSWORD_RULES = [
   { test: (p) => p.length >= 8, label: 'At least 8 characters' },
   { test: (p) => /[A-Z]/.test(p), label: 'One uppercase letter' },
@@ -28,13 +50,31 @@ export default function RegisterPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState([]);
+  const [emailError, setEmailError] = useState('');
 
   const setField = (field) => (e) => setForm({ ...form, [field]: e.target.value });
+
+  const handleEmailChange = (e) => {
+    const val = e.target.value;
+    setForm({ ...form, email: val });
+    if (!val) { setEmailError(''); return; }
+    if (!isValidEmailFormat(val)) { setEmailError('Enter a valid email address'); return; }
+    if (isDisposableEmail(val)) { setEmailError('Temporary/disposable email addresses are not allowed'); return; }
+    setEmailError('');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors([]);
 
+    if (!isValidEmailFormat(form.email)) {
+      setErrors(['Enter a valid email address']);
+      return;
+    }
+    if (isDisposableEmail(form.email)) {
+      setErrors(['Temporary/disposable email addresses are not allowed']);
+      return;
+    }
     if (form.password !== form.confirmPassword) {
       setErrors(['Passwords do not match']);
       return;
@@ -120,7 +160,17 @@ export default function RegisterPage() {
 
             <div className="form-group">
               <label className="form-label">Email Address *</label>
-              <input type="email" className="form-control" placeholder="john.doe@example.com" value={form.email} onChange={setField('email')} required autoComplete="email" />
+              <input
+                type="email"
+                className="form-control"
+                placeholder="john.doe@example.com"
+                value={form.email}
+                onChange={handleEmailChange}
+                required
+                autoComplete="email"
+                style={{ borderColor: emailError ? 'var(--danger)' : undefined }}
+              />
+              {emailError && <div className="form-error">{emailError}</div>}
             </div>
 
             <div className="form-group">
@@ -204,7 +254,7 @@ export default function RegisterPage() {
               )}
             </div>
 
-            <button type="submit" className="btn btn-primary btn-full btn-lg" disabled={loading || passStrength < 5 || form.password !== form.confirmPassword} style={{ marginTop: 8 }}>
+            <button type="submit" className="btn btn-primary btn-full btn-lg" disabled={loading || passStrength < 5 || form.password !== form.confirmPassword || !!emailError} style={{ marginTop: 8 }}>
               {loading ? <><span className="spinner" style={{ width: 16, height: 16 }} /> Creating account...</> : <><UserPlus size={16} /> Create Account</>}
             </button>
           </form>
